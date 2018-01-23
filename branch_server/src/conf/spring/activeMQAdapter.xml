@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd
+        http://www.springframework.org/schema/jms
+        http://www.springframework.org/schema/jms/spring-jms-2.5.xsd">
+
+	<bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://localhost:61616" />
+	</bean>
+	<!-- ActiveMQ为我们提供了一个PooledConnectionFactory，通过往里面注入一个ActiveMQConnectionFactory   
+        可以用来将Connection、Session和MessageProducer池化，这样可以大大的减少我们的资源消耗,要依赖于 activemq-pool包 --> 
+    <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">  
+        <property name="connectionFactory" ref="targetConnectionFactory" />  
+        <property name="maxConnections" value="1" />  
+    </bean>  
+  
+    <!-- Spring用于管理真正的ConnectionFactory的ConnectionFactory -->  
+    <bean id="cachingConnectionFactory"  
+        class="org.springframework.jms.connection.CachingConnectionFactory">  
+        <!-- 目标ConnectionFactory对应真实的可以产生JMS Connection的ConnectionFactory -->  
+        <property name="targetConnectionFactory" ref="pooledConnectionFactory" />
+        <property name="sessionCacheSize" value="1" />  
+        <property name="clientId" value="clientId03" />    
+    </bean>  
+	<!-- Spring JmsTemplate 的消息生产者 start -->
+	<!-- Spring提供的JMS工具类，它可以进行消息发送、接收等 -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<!-- 这个connectionFactory对应的是我们定义的Spring提供的那个ConnectionFactory对象 -->
+		<property name="connectionFactory" ref="cachingConnectionFactory" />
+		<property name="defaultDestination" ref="mqTopic"></property>  
+        <!-- deliveryMode, priority, timeToLive 的开关，要生效，必须配置explicitQosEnabled为true，默认false-->  
+        <property name="explicitQosEnabled" value="true" />  
+        <!-- 发送模式  DeliveryMode.NON_PERSISTENT=1:非持久 ; DeliveryMode.PERSISTENT=2:持久-->      
+        <property name="deliveryMode" value="2"/>  
+		<property name="sessionAcknowledgeMode" value="1" />     
+        <!-- 消息应答方式    
+        Session.AUTO_ACKNOWLEDGE  消息自动签收    
+        Session.CLIENT_ACKNOWLEDGE  客户端调用acknowledge方法手动签收    
+        Session.DUPS_OK_ACKNOWLEDGE 不必必须签收，消息可能会重复发送    
+        -->    
+	</bean>
+	<!--Spring JmsTemplate 的消息生产者 end -->
+	<bean id="mqTopic" class="org.apache.activemq.command.ActiveMQTopic">
+		<constructor-arg value="testtopic" />
+	</bean>
+	<!-- 消息消费者 start -->
+	<!-- 消息监听器 -->
+	  <bean id="messageListenerAdapter" class="org.springframework.jms.listener.adapter.MessageListenerAdapter">  
+        <property name="delegate">  
+            <bean class="com.service.impl.activeMQ.MessageListenerAdapter"/>  
+        </property>  
+        <property name="defaultListenerMethod" value="receiveMessage"/>  
+        <property name="defaultResponseDestination" ref="mqTopic"/>  
+    </bean>  
+	<!-- 消息监听容器 -->
+ <!-- 消息监听适配器对应的监听容器 -->  
+    <bean id="messageListenerAdapterContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">  
+        <property name="connectionFactory" ref="cachingConnectionFactory"/>  
+        <property name="destination" ref="mqTopic"/>  
+        <property name="messageListener" ref="messageListenerAdapter"/><!-- 使用MessageListenerAdapter来作为消息监听器 -->
+            <!-- 消息持久化值设置为true -->  
+        <property name="subscriptionDurable" value="true" />  
+        <!--消息接收超时 -->  
+        <property name="receiveTimeout" value="10000" />  
+        <!-- 接收者ID -->  
+       <!--  <property name="clientId" value="clientId_001" />  
+        <property name="durableSubscriptionName" value="clientId_001" />   -->
+    </bean>  
+	<!-- 消息消费者 end -->
+	
+	
+    <!-- 用于测试消息回复的 -->  
+    <bean id="responseQueue" class="org.apache.activemq.command.ActiveMQQueue">  
+        <constructor-arg>  
+            <value>responseQueue</value>  
+        </constructor-arg>  
+    </bean>  
+      
+    <!-- responseQueue对应的监听器 -->  
+    <bean id="responseQueueListener" class="com.service.impl.activeMQ.ResponseQueueListener"/>  
+      
+    <!-- responseQueue对应的监听容器 -->  
+    <bean id="responseQueueMessageListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">  
+        <property name="connectionFactory" ref="cachingConnectionFactory"/>  
+        <property name="destination" ref="responseQueue"/>  
+        <property name="messageListener" ref="responseQueueListener"/>  
+    </bean>  
+</beans>  

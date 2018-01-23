@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<!--
+	Action配置文件写法：
+	1.action name属性是页面提交的URL，例如login_login.do代表的是提交到LoginAction的login方法
+	2.name="*_*_*",其中*是通配符,其中，第一个*代表action和对应的功能的JSP所在的包名，第二个*代表action的名字，第三个表示要调用的方法
+	3.class="com.ebei.server.backend.action.LoginAction" 说明处理请求的Action类
+	4.method="{1}",说明处理请求的方法，不要与提交时的method="post"弄混了，其中{1}就是*匹配的字符串
+	5.	<result/>
+		<interceptor-ref name="defaultStack"/>
+    	<interceptor-ref name="serverJsonReaderInterceptor"/>
+   		这三句固定写在action元素内即可
+   		user_User_list.do
+ -->
+<struts>
+	<package name="backend" extends="server-default">
+		<action name="ex_*_*_*" class="com.action.{1}.{2}Action" method="{3}">
+        	<result name="{3}">/extends/{2}/{2}_{3}.jsp</result>
+        	<result name="loginsuccess">/page/index.jsp</result>
+			<result name="loginfail">/page/index.jsp</result>
+			<result name="loginNavgate">/page/index.jsp</result>
+			<result name="redirectlogin">/page/index.jsp</result>
+        </action>
+		<action name="*_*_*" class="com.action.{1}.{2}Action" method="{3}">
+			<result name="{3}">/page/{1}/{2}_{3}.jsp</result>
+
+			<result name="loginsuccess">/page/index.jsp</result>
+			<result name="loginfail">/page/login.jsp</result>
+			<result name="loginNavgate">/page/login.jsp</result>
+			<result name="redirectlogin">/page/login.jsp</result>
+			<result name="dowloadTemplate" type="stream">
+			   <param name="contentType">application/octet-stream;charset=ISO8859-1</param>
+			   <param name="contentDisposition">attachment;fileName=${downLoadFileName}</param>
+			   <param name="inputName">downloadFile</param>
+			</result>
+			<!--  <result name="printPageOne">/page/ebei/engineer/MaintainTask_printPageOne.jsp</result>
+			<result name="printPageTwo">/page/ebei/engineer/MaintainTask_printPageTwo.jsp</result>
+			<result name="report_list">/page/ebei/openfire/report_list.jsp</result>
+			<result name="rprate_list">/page/ebei/openfire/rprate_list.jsp</result>
+			<result name="wcmb_error">/page/ebei/wechatmobile/Estate_wcmb_error.jsp</result>
+			<result name="wcmb_noregister" type="redirect">wechatmobile_Estate_wcmb_vipreg.do</result>-->
+        </action>
+	</package>
+</struts>

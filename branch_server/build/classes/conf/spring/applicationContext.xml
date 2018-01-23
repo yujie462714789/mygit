@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.2.xsd
+           http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+            http://www.springframework.org/schema/aop
+     http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+          ">
+  <!--  上面配置必须按照顺序-->
+	<context:annotation-config />
+	<context:component-scan base-package="com" />
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:conf/jdbc.properties</value>
+			</list>
+		</property>
+		<!-- 添加如下属性，可以避免读取多个properties文件报错 -->
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+	</bean>
+
+	<!-- ========================= RESOURCE DEFINITIONS ========================= -->
+
+	<!-- Local Apache Commons DBCP DataSource that refers to a combined database -->
+	<!-- The placeholders are resolved from jdbc.properties through -->
+	<!-- the PropertyPlaceholderConfigurer in applicationContext.xml -->
+	<bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+	<!--<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="initialSize" value="${dataSource.initialSize}" />
+		<property name="maxIdle" value="${dataSource.maxIdle}" />
+		<property name="minIdle" value="${dataSource.minIdle}" />
+		<property name="maxActive" value="${dataSource.maxActive}" />
+		<property name="maxWait" value="${dataSource.maxWait}" /> -->
+		
+		<property name="driverClass"><value>${jdbc.driverClassName}</value></property>  
+		<property name="jdbcUrl"><value>${jdbc.url}</value></property>  
+		<property name="user"><value>${jdbc.username}</value></property>  
+		<property name="password"><value>${jdbc.password}</value></property>  
+		
+		 <!-- 检查数据库连接池中空闲连接的间隔时间，单位是分，默认值：240，如果要取消则设置为0 -->  
+
+        <property name="idleConnectionTestPeriod" value="240" />  
+
+        <!-- 连接池中未使用的链接最大存活时间，单位是分，默认值：60，如果要永远存活设置为0 -->  
+
+        <property name="idleMaxAge" value="60" />  
+
+        <!-- 每个分区最大的连接数 -->  
+
+        <property name="maxConnectionsPerPartition" value="100" />  
+
+        <!-- 每个分区最小的连接数 -->  
+
+        <property name="minConnectionsPerPartition" value="10" />  
+
+        <!-- 分区数 ，默认值2，最小1，推荐3-4，视应用而定-->  
+
+        <property name="partitionCount" value="3" />  
+
+        <!-- 每次去拿数据库连接的时候一次性要拿几个,默认值：2 -->  
+
+        <property name="acquireIncrement" value="2" />  
+
+        <!-- 缓存prepared statements的大小，默认值：0 -->  
+
+        <property name="statementsCacheSize" value="0" />  
+
+        <!-- 每个分区释放链接助理进程的数量，默认值：3，除非你的一个数据库连接的时间内做了很多工作，不然过多的助理进程会影响你的性能 -->  
+
+        <property name="releaseHelperThreads" value="3" />   
+
+	</bean>
+
+	<!-- session factory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource">
+			<ref local="dataSource" />
+		</property>
+		<property name="configLocation">
+			<value>classpath:conf/hibernate/hibernate.cfg.xml</value>
+		</property>
+	</bean>
+	<!-- transaction manager -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory">
+			<ref local="sessionFactory" />
+		</property>
+	</bean>
+<!--  事务控制-->
+	<bean id="transactionInterceptor"
+		class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="add*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="save*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="merge*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="update*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="delete*">PROPAGATION_REQUIRED,-Exception</prop>
+				<prop key="remove*">PROPAGATION_REQUIRED,-Exception</prop>
+				<!-- <prop key="*">PROPAGATION_REQUIRED</prop> -->
+				<prop key="find*">PROPAGATION_REQUIRED</prop>
+				<prop key="execute*">PROPAGATION_REQUIRED</prop>
+				<prop key="get*">PROPAGATION_REQUIRED</prop>
+				<prop key="load*">PROPAGATION_REQUIRED</prop>
+				<prop key="query*">PROPAGATION_REQUIRED</prop>
+				<prop key="create*">PROPAGATION_REQUIRED</prop>
+				<prop key="*Service">PROPAGATION_REQUIRED,-Exception</prop>
+			</props>
+		</property>
+	</bean>
+<!--  支持注解 -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>*Service</value>
+				<value>*Info</value>
+				<value>ProcessDeploymentFactoryBean</value>
+			</list>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<value>transactionInterceptor</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="autoProxyAop"
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>*Action</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean class="org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator" />
+
+         <bean id="aspectBean" class="com.action.common.AspectBean"></bean>
+<!-- 此时的配置文件注意要使spring知道哪一个是普通的bean，哪一个是通知。因此需要加上一个属性，保证AOP自动的识别通知。 -->
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+   <!-- <bean class="com.ebei.qpi.backend.dao.impl.BeanPostPrcessorImpl"/> -->	
+
+	<!-- 静态spring context 获取类 -->
+	<bean id="SpringContextUtil" class="com.action.common.ISpringBean"
+		scope="singleton" />
+   <import resource="springScheduleExecutor.xml"/>
+   <import resource= "activeMQAdapter.xml"/> 
+</beans>
+

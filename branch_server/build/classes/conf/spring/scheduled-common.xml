@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+	
+	<!-- 动态任务调度扫描 -->
+	<bean id="scheduleService" class="com.service.impl.common.ScheduleServiceImpl"></bean> 
+    <!-- spring 动态任务扫描，每两分钟执行一次 -->
+    <bean id="qpiTimeTrigger1" class="org.springframework.scheduling.quartz.CronTriggerBean">
+	   <property name="jobDetail"> 
+		    <bean id="errorLogJob11" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	         <property name="targetObject">
+	            <ref local="scheduleService" />
+	         </property>
+	         <property name="targetMethod">
+	            <value>run</value>
+	         </property>
+	   		</bean>
+	   </property> 
+	   <property name="cronExpression"> 
+	    <value>0 0/1 * * * ?</value> 
+	   </property> 
+    </bean>
+	<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+     <property name="triggers">
+       <list>
+            <ref bean="qpiTimeTrigger1"/>
+       </list>
+     </property>
+	</bean>
+	
+</beans>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+	<package name="server-default" extends="struts-default">
+	<!--	<interceptors>
+			<interceptor name="authority"
+				class="com.ebei.common.interceptor.AuthorityInterceptor">
+				<param name="excludeMethods">login,logout,*TI,*Ldap*,ldap*,sendGeneralUserMsg,getReportAndShowToTer,getRateReportAndShowToTer,receivePatrolTask,*callback,wcmb_*,*ClientPage,newsContent,uploadimg,orderPayService,OrderWXPay,sync*,registerUser,loginPort</param>
+			</interceptor>
+			<interceptor-stack name="myauthoritys">
+				<interceptor-ref name="defaultStack" />
+				<interceptor-ref name="authority" />
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="myauthoritys"></default-interceptor-ref>
+  		 <global-results>
+  			<result name="error">/500.jsp</result>
+   		</global-results>
+		<global-exception-mappings>
+	 		<exception-mapping exception="java.lang.Exception" result="error" />
+   		</global-exception-mappings> -->
+	</package>
+</struts>

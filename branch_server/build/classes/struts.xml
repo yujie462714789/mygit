@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+    "http://struts.apache.org/dtds/struts-2.3.dtd">
+<!-- 
+	action配置文件，每个大功能点一个单独的配置文件。
+ -->
+<struts>
+  <constant name="struts.action.extension" value="do" />
+  <constant name="struts.devMode" value="false" />
+   <!-- 自动动态方法的调用，使用这个设置后可以这样调用：action!method -->
+  <constant name="struts.enable.DynamicMethodInvocation" value="false" />
+  <constant name="struts.multipart.maxSize" value="5000000000" />
+  <constant name="struts.locale" value="zh_CN" />
+  <constant name="struts.multipart.saveDir" value="tmp" /><!--临时文件存放路径  -->
+  <!-- 国际化配置 -->
+  <constant name="struts.i18n.encoding" value="UTF-8" />
+  <constant name="struts.i18n.reload" value="true" />
+  <constant name="struts.custom.i18n.resources" value="messageResources,frontMessageResources,logResources" />
+  <constant name="struts.ognl.allowStaticMethodAccess" value="true" /> 
+
+  <!-- <constant name="struts.multipart.parser" value="com.ebei.common.interceptor.GarryMultiPartRequest" /> -->
+   <!-- 主题，将值设置为simple，即不使用UI模板。这将不会生成额外的html标签 -->
+  <constant name="struts.ui.theme" value="simple" /> 
+  <constant name="struts.ui.templateDir" value="template" /> 
+  <constant name="struts.ui.templateSuffix" value="ftl" />
+    <!--<bean class="com.ebei.common.interceptor.GarryMultiPartRequest" scope="default" optional="true" name="requestParser"
+          type="org.apache.struts2.dispatcher.multipart.MultiPartRequest"/>
+    <constant name="struts.multipart.handler" value="requestParser"/>-->
+  
+
+  <!-- Action 配置文件 开始 -->
+  <include file="conf/struts/struts-base.xml" />
+  <include file="conf/struts/struts-backend.xml" />
+  <!-- Action 配置文件 结束 -->
+</struts>
